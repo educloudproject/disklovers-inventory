@@ -1,9 +1,9 @@
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require('express');
+const app = express();
+const port = 3000;
 
 const MongoClient = require('mongodb').MongoClient;
-const ObjectID = require('mongodb').ObjectID
+const ObjectID = require('mongodb').ObjectID;
 
 const url = 'mongodb://localhost:27017';
 const dbName = 'disk-lovers-inventory-service';
@@ -11,8 +11,8 @@ const client = new MongoClient(url, { useUnifiedTopology: true });
 let db;
 let collection;
 
-const bodyParser = require('body-parser')
-app.use(bodyParser.json())
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
 
 client.connect(function() {
   try {

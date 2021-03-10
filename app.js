@@ -54,7 +54,7 @@ app.get('/movies/:id', async (req, res) => {
         console.log('An error occurred while fetching the movie', error);
       };
     return res.status(statusCode).json(result);
-})
+});
 
 app.post('/movies', async(req, res) => {
     let resultMessage = 'Saved Movie';
@@ -67,7 +67,7 @@ app.post('/movies', async(req, res) => {
         console.log('An error occurred while saving the movie', error);
     }
   return res.status(statusCode).send(resultMessage);
-})
+});
 
 app.delete('/movies/:id', async (req, res) => {
     let resultMessage = 'Deleted Movie';
@@ -85,11 +85,11 @@ app.delete('/movies/:id', async (req, res) => {
         console.log('An error occurred while deleting the movie', error);
     }
     return res.status(statusCode).send(resultMessage);
-})
+});
 
 app.listen(port, () => {
   console.log(`DiskLovers Inventory app listening at http://localhost:${port}`)
-})
+});
 
 function getErrorObject(message) {
     return {error: message};

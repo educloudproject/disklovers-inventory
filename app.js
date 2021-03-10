@@ -15,71 +15,82 @@ const bodyParser = require('body-parser')
 app.use(bodyParser.json())
 
 client.connect(function() {
-  console.log('Connected successfully to server');
-
-  db = client.db(dbName);
-  collection = db.collection('movies');
+  try {
+      db = client.db(dbName);
+      collection = db.collection('movies');
+      console.log('Connected successfully to database server');
+  } catch (error) {
+      console.log('Error: Could not connect to database server');
+  }
 });
 
 app.get('/movies', async (req, res) => {
-  await collection.find({}).toArray()
-    .then((result) => {
-      //console.debug(result)
-      res.status(200).json(result)
-    })
-    .catch((error) => {
-      console.log('An error occurred while fetching the list of movies', error);
-      res.status(500).send('Error Fetching Movies\n')
-    });
+    let result;
+    let statusCode = 200;
+    try {
+        result = await collection.find({}).toArray();
+        //console.debug(result)
+    } catch (error) {
+        result = getErrorObject('Error fetching Movie List');
+        statusCode = 500;
+        console.log('An error occurred while fetching the list of movies', error);
+    }
+    return res.status(statusCode).json(result)
 });
 
 app.get('/movies/:id', async (req, res) => {
-  await collection.find({'_id': ObjectID(req.params.id)}).toArray()
-      .then((result) => {
+    let result;
+    let statusCode = 200;
+    try {
+        result = await collection.findOne({'_id': ObjectID(req.params.id)});
         //console.debug(result)
-        let movie;
-        let status;
-        if (result[0]) {
-          movie = result[0];
-          status = 200;
-        } else {
-          status = 404;
+        if (!result) {
+            result = {};
+            statusCode = 404;
         }
-        return res.status(status).json(movie);
-      })
-      .catch((error) => {
+      } catch (error) {
+        result = getErrorObject('Error fetching Movie');
+        statusCode = 500;
         console.log('An error occurred while fetching the movie', error);
-        res.status(500).send('Error Fetching Movie\n')
-      });
+      };
+    return res.status(statusCode).json(result);
 })
 
 app.post('/movies', async(req, res) => {
-  await collection.insertOne(req.body)
-      .then((result) => {
-          console.log('Inserted movie into the collection');
-          //console.debug(result)
-          res.status(201).send('Saved Movie\n')
-      })
-      .catch((error) => {
-        console.log('An error occurred while inserting movie into the collection', error);
-        res.status(500).send('Error Saving Movie\n')
-      });
+    let resultMessage = 'Saved Movie';
+    let statusCode = 201;
+    try {
+        await collection.insertOne(req.body);
+    } catch (error) {
+        resultMessage = 'Error saving Movie';
+        statusCode = 500;
+        console.log('An error occurred while saving the movie', error);
+    }
+  return res.status(statusCode).send(resultMessage);
 })
 
 app.delete('/movies/:id', async (req, res) => {
-  await collection.deleteOne({'_id': ObjectID(req.params.id)})
-      .then((result) => {
-        //console.debug(result)
-        console.log('Deleted movie from the collection');
-        //console.debug(result)
-        res.status(200).send('Deleted Movie\n')
-      })
-      .catch((error) => {
+    let resultMessage = 'Deleted Movie';
+    let statusCode = 200;
+    try {
+        let result = await collection.deleteOne({'_id': ObjectID(req.params.id)})
+        //console.debug(result);
+        if (result.deletedCount === 0) {
+            resultMessage = 'Movie Not Found';
+            statusCode = 404;
+        }
+    } catch (error) {
+        resultMessage = 'Error deleting Movie';
+        statusCode = 500;
         console.log('An error occurred while deleting the movie', error);
-        res.status(404).send('Error Deleting Movie\n')
-      });
+    }
+    return res.status(statusCode).send(resultMessage);
 })
 
 app.listen(port, () => {
   console.log(`DiskLovers Inventory app listening at http://localhost:${port}`)
 })
+
+function getErrorObject(message) {
+    return {error: message};
+}
